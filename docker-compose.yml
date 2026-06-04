@@ -1,0 +1,145 @@
+services:
+
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: namenode
+    hostname: namenode
+    ports:
+      - "9870:9870"
+      - "9000:9000"
+    environment:
+      CLUSTER_NAME: projet
+      CORE_CONF_fs_defaultFS: hdfs://namenode:9000
+      YARN_CONF_yarn_resourcemanager_hostname: resourcemanager
+    volumes:
+      - ./datasets:/datasets
+    networks:
+      - hadoop
+
+  datanode1:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode1
+    environment:
+      CLUSTER_NAME: projet
+      CORE_CONF_fs_defaultFS: hdfs://namenode:9000
+    depends_on:
+      - namenode
+    networks:
+      - hadoop
+
+  datanode2:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode2
+    environment:
+      CLUSTER_NAME: projet
+      CORE_CONF_fs_defaultFS: hdfs://namenode:9000
+    depends_on:
+      - namenode
+    networks:
+      - hadoop
+
+  datanode3:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode3
+    environment:
+      CLUSTER_NAME: projet
+      CORE_CONF_fs_defaultFS: hdfs://namenode:9000
+    depends_on:
+      - namenode
+    networks:
+      - hadoop
+
+  resourcemanager:
+    image: bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8
+    container_name: resourcemanager
+    ports:
+      - "8088:8088"
+    environment:
+      CLUSTER_NAME: projet
+      CORE_CONF_fs_defaultFS: hdfs://namenode:9000
+      YARN_CONF_yarn_resourcemanager_hostname: resourcemanager
+    depends_on:
+      - namenode
+    networks:
+      - hadoop
+
+  nodemanager1:
+    image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
+    container_name: nodemanager1
+    environment:
+      CLUSTER_NAME: projet
+      CORE_CONF_fs_defaultFS: hdfs://namenode:9000
+      YARN_CONF_yarn_resourcemanager_hostname: resourcemanager
+    depends_on:
+      - resourcemanager
+    networks:
+      - hadoop
+
+  spark-master:
+    image: apache/spark:3.5.1
+    container_name: spark-master
+    hostname: spark-master
+    user: "0:0"
+    volumes:
+      - ./scripts:/opt/scripts
+      - ./datasets:/opt/data
+    command:
+      - /opt/spark/bin/spark-class
+      - org.apache.spark.deploy.master.Master
+      - --host
+      - spark-master
+      - --port
+      - "7077"
+      - --webui-port
+      - "8080"
+    ports:
+      - "7077:7077"
+      - "8080:8080"
+      - "8501:8501"
+    depends_on:
+      - namenode
+    networks:
+      - hadoop
+
+  spark-worker-1:
+    image: apache/spark:3.5.1
+    container_name: spark-worker-1
+    user: "0:0"
+    command:
+      - /opt/spark/bin/spark-class
+      - org.apache.spark.deploy.worker.Worker
+      - spark://spark-master:7077
+    depends_on:
+      - spark-master
+    networks:
+      - hadoop
+
+  spark-worker-2:
+    image: apache/spark:3.5.1
+    container_name: spark-worker-2
+    user: "0:0"
+    command:
+      - /opt/spark/bin/spark-class
+      - org.apache.spark.deploy.worker.Worker
+      - spark://spark-master:7077
+    depends_on:
+      - spark-master
+    networks:
+      - hadoop
+
+  spark-worker-3:
+    image: apache/spark:3.5.1
+    container_name: spark-worker-3
+    user: "0:0"
+    command:
+      - /opt/spark/bin/spark-class
+      - org.apache.spark.deploy.worker.Worker
+      - spark://spark-master:7077
+    depends_on:
+      - spark-master
+    networks:
+      - hadoop
+
+networks:
+  hadoop:
+    driver: bridge
