@@ -242,3 +242,11 @@ which avoids a common PySpark startup failure.
 - **`graph.py`** is environment-driven (`SPARK_MASTER`, `DATA_PATH`) so the same code
   runs either against the cluster or purely locally — useful for quick iteration
   without the full Docker cluster.
+
+---
+
+## License
+
+Released under the [MIT License](LICENSE).
+
+Copyright (c) 2026 Mohamed Aziz Madhbouh.
